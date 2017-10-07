@@ -1,6 +1,3 @@
-// Henry Wu
-// COMSC 165
-// Section 3015
 // Homework #2
 
 #include <iostream>
