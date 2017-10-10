@@ -1,31 +1,41 @@
 #ifndef VIDEO_H
 #define VIDEO_H
 #include <string>
+#include "Publication.h"
 
-class Video
+class Video : public Publication
 {
 public:
-	Video();
-	~Video();
-	enum Resolution
+	enum class Resolution
 	{
-		low,
-		high,
-		fourK
+		LOW,
+		HIGH,
+		FOURK
 	};
+	Video();
+	Video(std::string title, std::string author, int copies, Resolution resolution, std::string producer);
+	~Video();
 	Video::Resolution getResolution();
 	std::string getProducer();
 	void setResolution(Video::Resolution resolution);
 	void setProducer(std::string producer);
+	Video* testData();
 
 private:
 	Resolution m_resolution;
 	std::string m_producer;
+	static const std::string m_resolutionStrings[];
 
 };
 
 Video::Video()
 {
+}
+
+Video::Video(std::string title, std::string author, int copies, Resolution resolution, std::string producer) : Publication(title, author, copies)
+{
+	m_resolution = resolution;
+	m_producer = producer;
 }
 
 Video::~Video()
@@ -51,4 +61,18 @@ inline void Video::setProducer(std::string producer)
 {
 	m_producer = producer;
 }
+
+Video* Video::testData()
+{
+	static Video testVideos[] =
+	{
+		Video("Pulp Fiction", "Quentin Tarantino", 3, Video::Resolution::HIGH, "Lawrence Bender"),
+		Video("Star Wars: Episode IV - A New Hope", "George Lucas", 4, Video::Resolution::FOURK, "Gary Kurtz"),
+		Video("Seven Samurai", "Akiro Kurasawa", 2, Video::Resolution::LOW, "Sojiro Motoki")
+	};
+
+	return testVideos;
+}
+
+const std::string Video::m_resolutionStrings[] = { "Low", "High", "4K" };
 #endif // !VIDEO_H

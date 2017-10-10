@@ -7,13 +7,17 @@
 #include <vector>
 #include <iomanip>
 #include <Windows.h>
+#include <memory>
 #include "Person.h"
 #include "Publication.h"
+#include "Music.h"
+#include "Book.h"
+#include "Video.h"
 
 using namespace std;
 
-void initializeTestData(vector<Person> &people);
-void initializeTestData(vector<Publication> &Publications);
+template <class T>
+void initializeTestData(vector<T> &collection, int size);
 void displayLibraryMembers(vector<Person> const &members);
 void editLibraryMember(vector<Person> &members);
 void editMemberAttributes(vector<Person> &members, int index);
@@ -29,21 +33,28 @@ int ID_COUNTER = 5;
 int main()
 {
 	int choice;
-	vector<Person> libraryMembers(4);
-	initializeTestData(libraryMembers);
-	vector<Publication> libraryPublications(6);
-	initializeTestData(libraryPublications);
+	// We haven't done anything on polymorphism yet so keep objects in different collections
+	// Could use virtual methods and dynamic_cast if we wanted a single collection of different objects though
+	vector<Person> libraryMembers;
+	initializeTestData<Person>(libraryMembers, 4);
+	vector<Book> libraryBooks;
+	initializeTestData<Book>(libraryBooks, 6);
+	vector<Music> libraryMusic;
+	initializeTestData<Music>(libraryMusic, 3);
+	vector<Video> libraryVideos;
+	initializeTestData<Video>(libraryVideos, 3);
 
 	do
 	{
-		const int SELECT_MIN = 1, SELECT_MAX = 5;
+		const int SELECT_MIN = 1, SELECT_MAX = 6;
 		choice = 0;
 		cout << "Library App Main Menu" << endl;
 		cout << "1. Display all current library members" << endl;
-		cout << "2. Edit data of a current library member" << endl;
-		cout << "3. View all Publications in the library" << endl;
-		cout << "4. Check out a Publication" << endl;
-		cout << "5. Check in a Publication" << endl;
+		cout << "2. View all Publications in the library" << endl;
+		cout << "3. Edit data of a current library member" << endl;
+		cout << "4. Edit a publication" << endl;
+		cout << "5. Check out a Publication" << endl;
+		cout << "6. Check in a Publication" << endl;
 		cout << "What would you like to do? (q to quit) ";
 		cin >> choice;
 
@@ -56,13 +67,13 @@ int main()
 			editLibraryMember(libraryMembers);
 			break;
 		case 3:
-			displayLibraryPublications(libraryPublications);
+			//displayLibraryPublications(libraryBooks);
 			break;
 		case 4:
-			checkOutPublication(libraryPublications, libraryMembers);
+			//checkOutPublication(libraryPublications, libraryMembers);
 			break;
 		case 5:
-			checkInPublication(libraryPublications);
+			//checkInPublication(libraryPublications);
 			break;
 		default:
 			if ((choice > SELECT_MAX || choice < SELECT_MIN) && !cin.fail())
@@ -75,24 +86,19 @@ int main()
 	return 0;
 }
 
-///<summary> Initializes test data for library members. </summary>
-///<param name="people"> Vector of people that is populated with test data. </param>
+template <class T>
+///<summary> Initializes test data for library publications. </summary>
+///<param name="collection"> Vector of objects that is populated with test data. </param>
+///<param name="size"> Number of elements in test data array. </param>
 ///<returns> Nothing. </returns>
-void initializeTestData(vector<Person> &people)
+void initializeTestData(vector<T> &collection, int size)
 {
-	Person temp;
-	Person* tempArr = temp.testData();
-	copy(tempArr, tempArr + 4, people.begin());
-}
-
-///<summary> Initializes test data for library Publications. </summary>
-///<param name="Publications"> Vector of Publications that is populated with test data. </param>
-///<returns> Nothing. </returns>
-void initializeTestData(vector<Publication> &Publications)
-{
-	Publication temp;
-	Publication* tempArr = temp.testData();
-	copy(tempArr, tempArr + 6, Publications.begin());
+	T temp;
+	T* tempArr = temp.testData();
+	for (int i = 0; i < size; i++)
+	{
+		collection.push_back(*(tempArr + i));
+	}
 }
 
 ///<summary> Displays all current library members at the console. </summary>
@@ -225,12 +231,12 @@ int userSelectMember(string prompt, int arraySize)
 ///<summary> Displays all library Publications to the prompt.</summary>
 ///<param name="Publications"> Vector of library Publications. </param>
 ///<returns> Nothing. </returns>
-void displayLibraryPublications(vector<Publication> const &Publications)
+void displayLibraryPublications(vector<Publication> const &publications)
 {
 	// Display all current members
 	system("cls");
 
-	if (Publications.size() < 1)
+	if (publications.size() < 1)
 	{
 		cout << "No library Publications listed." << endl;
 		return;
@@ -238,7 +244,7 @@ void displayLibraryPublications(vector<Publication> const &Publications)
 
 	int count = 1;
 	cout << "Current Library Publications" << endl;
-	for (Publication Publication : Publications)
+	for (Publication Publication : publications)
 	{
 
 		cout << "#" << count << endl;
