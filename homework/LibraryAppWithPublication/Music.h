@@ -20,6 +20,7 @@ public:
 	~Music();
 	int getDuration();
 	Music::Format getFormat();
+	const std::string* getFormatStrings();
 	void setDuration(int duration);
 	void setFormat(Music::Format format);
 	Music* testData();
@@ -47,6 +48,11 @@ inline int Music::getDuration()
 inline Music::Format Music::getFormat()
 {
 	return m_format;
+}
+
+inline const std::string* Music::getFormatStrings()
+{
+	return Music::m_formatStrings;
 }
 
 inline void Music::setDuration(int duration)

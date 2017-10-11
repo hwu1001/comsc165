@@ -20,9 +20,11 @@ public:
 	~Book();
 	int getPages();
 	Book::Format getFormat();
+	const std::string* getFormatStrings();
 	void setPages(int pages);
 	void setFormat(Book::Format format);
 	Book* testData();
+	
 
 private:
 	int m_pages;
@@ -48,6 +50,11 @@ inline int Book::getPages()
 inline Book::Format Book::getFormat()
 {
 	return m_format;
+}
+
+inline const std::string* Book::getFormatStrings()
+{
+	return Book::m_formatStrings;
 }
 
 inline void Book::setPages(int pages)

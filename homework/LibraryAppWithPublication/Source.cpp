@@ -23,8 +23,12 @@ void editLibraryMember(vector<Person> &members);
 void editMemberAttributes(vector<Person> &members, int index);
 void getNameAndEmail(string &name, string &email);
 int userSelectMember(string prompt, int arraySize);
-void displayLibraryPublications(vector<Publication> const &Publications);
-void displayLibraryPublication(Publication Publication);
+void displayLibraryPublications(vector<Book> const &books, vector<Music> const &music, vector<Video> const &videos);
+template <class T>
+void displayLibraryPublication(T libraryItem);
+void displayLibraryBook(Book book);
+void displayLibraryMusic(Music music);
+void displayLibraryVideo(Video video);
 void checkInPublication(vector<Publication> &Publications);
 void checkOutPublication(vector<Publication> &Publications, vector<Person> &members);
 
@@ -64,10 +68,10 @@ int main()
 			displayLibraryMembers(libraryMembers);
 			break;
 		case 2:
-			editLibraryMember(libraryMembers);
+			displayLibraryPublications(libraryBooks, libraryMusic, libraryVideos);
 			break;
 		case 3:
-			//displayLibraryPublications(libraryBooks);
+			editLibraryMember(libraryMembers);
 			break;
 		case 4:
 			//checkOutPublication(libraryPublications, libraryMembers);
@@ -231,12 +235,12 @@ int userSelectMember(string prompt, int arraySize)
 ///<summary> Displays all library Publications to the prompt.</summary>
 ///<param name="Publications"> Vector of library Publications. </param>
 ///<returns> Nothing. </returns>
-void displayLibraryPublications(vector<Publication> const &publications)
+void displayLibraryPublications(vector<Book> const &books, vector<Music> const &music, vector<Video> const &videos)
 {
 	// Display all current members
 	system("cls");
 
-	if (publications.size() < 1)
+	if (books.size() < 1 && music.size() < 1 && videos.size() < 1)
 	{
 		cout << "No library Publications listed." << endl;
 		return;
@@ -244,28 +248,67 @@ void displayLibraryPublications(vector<Publication> const &publications)
 
 	int count = 1;
 	cout << "Current Library Publications" << endl;
-	for (Publication Publication : publications)
+	cout << "  ____              _        " << endl;
+	cout << " |  _ \\            | |       " << endl;
+	cout << " | |_) | ___   ___ | | _____ " << endl;
+	cout << " |  _ < / _ \\ / _ \\| |/ / __|" << endl;
+	cout << " | |_) | (_) | (_) |   <\\__ \\" << endl;
+	cout << " |____/ \\___/ \\___/|_|\\_\\___/" << endl;
+	cout << endl;
+	for (Book book : books)
+	{
+		cout << "#" << count << endl;
+		displayLibraryBook(book);
+		count++;
+	}
+
+	count = 1;
+	cout << "  __  __           _      " << endl;
+	cout << " |  \\/  |         (_)     " << endl;
+	cout << " | \\  / |_   _ ___ _  ___ " << endl;
+	cout << " | |\\/| | | | / __| |/ __|" << endl;
+	cout << " | |  | | |_| \\__ \\ | (__ " << endl;
+	cout << " |_|  |_|\\__,_|___/_|\\___|" << endl;
+	cout << endl;
+	for (Music album : music)
 	{
 
 		cout << "#" << count << endl;
-		displayLibraryPublication(Publication);
+		displayLibraryMusic(album);
+		count++;
+	}
+
+	count = 1;
+	cout << " __      ___     _                " << endl;
+	cout << " \\ \\    / (_)   | |               " << endl;
+	cout << "  \\ \\  / / _  __| | ___  ___  ___ " << endl;
+	cout << "   \\ \\/ / | |/ _` |/ _ \\/ _ \\/ __|" << endl;
+	cout << "    \\  /  | | (_| |  __/ (_) \\__ \\" << endl;
+	cout << "     \\/   |_|\\__,_|\\___|\\___/|___/" << endl;
+	cout << endl;
+	for (Video video : videos)
+	{
+
+		cout << "#" << count << endl;
+		displayLibraryVideo(video);
 		count++;
 	}
 }
 
-///<summary> Displays a single library Publication to the prompt including the title, author, and copies/statuses.</summary>
-///<param name="Publication"> A single library Publication object. </param>
+template <class T>
+///<summary> Displays a single library Publication or derived class to the prompt including the title, author, and copies/statuses.</summary>
+///<param name="libraryItem"> A Publication or derived object. </param>
 ///<returns> Nothing. </returns>
-void displayLibraryPublication(Publication Publication)
+void displayLibraryPublication(T libraryItem)
 {
-	vector<Person*> borrowers = Publication.getBorrower();
-	vector<bool> checkedOutStatuses = Publication.getCheckedOutStatus();
-	cout << "Title: " << Publication.getTitle() << endl;
-	cout << "Author: " << Publication.getAuthor() << endl;
+	vector<Person*> borrowers = libraryItem.getBorrower();
+	vector<bool> checkedOutStatuses = libraryItem.getCheckedOutStatus();
+	cout << "Title: " << libraryItem.getTitle() << endl;
+	cout << "Author: " << libraryItem.getAuthor() << endl;
 	cout << "Copies:" << endl;
 	cout << "   " << setw(14) << left << "Checked Out?" << setw(8) << "Borrower" << endl;
 	cout << "   " << setw(14) << left << "============" << setw(8) << "========" << endl;
-	for (int i = 0; i < Publication.getNumCopies(); i++)
+	for (int i = 0; i < libraryItem.getNumCopies(); i++)
 	{
 		string checkedOut;
 		string borrowerName;
@@ -290,8 +333,44 @@ void displayLibraryPublication(Publication Publication)
 		}
 		cout << i + 1 << ". " << setw(14) << left << checkedOut << setw(borrowerName.length()) << left << borrowerName << endl;
 	}
-	cout << endl;
 
+}
+
+///<summary> Displays a single library book including the number of pages and format of the book.</summary>
+///<param name="book"> A Book object used to display data. </param>
+///<returns> Nothing. </returns>
+void displayLibraryBook(Book book)
+{
+	displayLibraryPublication<Book>(book);
+	const string* formatArr = book.getFormatStrings();
+	cout << "Pages: " << book.getPages() << endl;
+	cout << "Format: " << *(formatArr + static_cast<int>(book.getFormat())) << endl;
+	cout << endl;
+	
+}
+
+///<summary> Displays a single library album (Music object) including the duration in seconds and format of the recording.</summary>
+///<param name="music"> A Music object used to display data. </param>
+///<returns> Nothing. </returns>
+void displayLibraryMusic(Music music)
+{
+	displayLibraryPublication<Music>(music);
+	const string* formatArr = music.getFormatStrings();
+	cout << "Duration: " << music.getDuration() << " seconds" << endl;
+	cout << "Format: " << *(formatArr + static_cast<int>(music.getFormat())) << endl;
+	cout << endl;
+}
+
+///<summary> Displays a single library video including the producer and resolution of the video.</summary>
+///<param name="video"> A Video object used to display data. </param>
+///<returns> Nothing. </returns>
+void displayLibraryVideo(Video video)
+{
+	displayLibraryPublication<Video>(video);
+	const string* resolutionArr = video.getResolutionStrings();
+	cout << "Producer: " << video.getProducer() << endl;
+	cout << "Resolution: " << *(resolutionArr + static_cast<int>(video.getResolution())) << endl;
+	cout << endl;
 }
 
 ///<summary> Prompts a user for a Publication and copy of that Publication to check in to the library.</summary>
@@ -301,7 +380,7 @@ void checkInPublication(vector<Publication> &Publications)
 {
 	system("cls");
 
-	displayLibraryPublications(Publications);
+	//displayLibraryPublications(Publications);
 	int choice = userSelectMember("Enter the number of the Publication to check in: ", Publications.size());
 	int copyIndex = userSelectMember("Enter the copy number to check in: ", Publications[choice].getNumCopies());
 
@@ -325,7 +404,7 @@ void checkOutPublication(vector<Publication> &Publications, vector<Person> &memb
 	bool available = false;
 	int copyIndex;
 
-	displayLibraryPublications(Publications);
+	//displayLibraryPublications(Publications);
 	int PublicationChoice = userSelectMember("Enter the number of the Publication to check out: ", Publications.size());
 
 	vector<bool> checkedOutStatuses = Publications[PublicationChoice].getCheckedOutStatus();

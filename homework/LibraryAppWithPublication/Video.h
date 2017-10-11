@@ -17,6 +17,7 @@ public:
 	~Video();
 	Video::Resolution getResolution();
 	std::string getProducer();
+	const std::string* getResolutionStrings();
 	void setResolution(Video::Resolution resolution);
 	void setProducer(std::string producer);
 	Video* testData();
@@ -52,6 +53,11 @@ inline std::string Video::getProducer()
 	return m_producer;
 }
 
+inline const std::string* Video::getResolutionStrings()
+{
+	return Video::m_resolutionStrings;
+}
+
 inline void Video::setResolution(Video::Resolution resolution)
 {
 	m_resolution = resolution;
@@ -68,7 +74,7 @@ Video* Video::testData()
 	{
 		Video("Pulp Fiction", "Quentin Tarantino", 3, Video::Resolution::HIGH, "Lawrence Bender"),
 		Video("Star Wars: Episode IV - A New Hope", "George Lucas", 4, Video::Resolution::FOURK, "Gary Kurtz"),
-		Video("Seven Samurai", "Akiro Kurasawa", 2, Video::Resolution::LOW, "Sojiro Motoki")
+		Video("Seven Samurai", "Akira Kurasawa", 2, Video::Resolution::LOW, "Sojiro Motoki")
 	};
 
 	return testVideos;
