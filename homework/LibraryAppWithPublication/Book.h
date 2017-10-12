@@ -83,5 +83,5 @@ Book* Book::testData()
 
 }
 
-const std::string Book::m_formatStrings[] = { "hardcover", "softcover", "digital" };
+const std::string Book::m_formatStrings[] = { "Hardcover", "Softcover", "Digital" };
 #endif // !BOOK_H
