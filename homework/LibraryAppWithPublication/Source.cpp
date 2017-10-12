@@ -24,7 +24,7 @@ int userSelectMember(string prompt, int size);
 int getIntInput(string prompt, int max, int min = 1, bool isArray = true);
 
 void editLibraryMember(vector<Person> &members);
-void editMemberAttributes(vector<Person> &members, int index);
+void editMemberAttributes(Person &member);
 void editPublicationMenu(vector<Book> &books, vector<Music> &music, vector<Video> &videos);
 template <class T>
 void editPublicationAttributes(T &publication);
@@ -77,11 +77,11 @@ int main()
 		choice = 0;
 		cout << "Library App Main Menu" << endl;
 		cout << "1. Display all current library members" << endl;
-		cout << "2. View all Publications in the library" << endl;
+		cout << "2. View all publications in the library" << endl;
 		cout << "3. Edit data of a current library member" << endl;
 		cout << "4. Edit a publication" << endl;
-		cout << "5. Check out a Publication" << endl;
-		cout << "6. Check in a Publication" << endl;
+		cout << "5. Check out a publication" << endl;
+		cout << "6. Check in a publication" << endl;
 		cout << "What would you like to do? (q to quit) ";
 		cin >> choice;
 
@@ -133,43 +133,9 @@ void initializeTestData(vector<T> &collection, int size)
 	}
 }
 
-///<summary> Prompts the user for a library member's new name and email.</summary>
-///<param name="name"> Name to get from the user prompt. </param>
-///<param name="email"> Email to get from the user prompt. </param>
-///<returns> Nothing. </returns>
-void getNameAndEmail(string &name, string &email)
-{
-	bool done = false;
-
-	while (!done)
-	{
-		cout << "Please enter the library member's full name: ";
-		getline(cin, name);
-
-		if (name.empty())
-		{
-			cout << "Name not entered, please re-enter." << endl;
-			continue;
-		}
-		done = true;
-	}
-
-	done = false;
-
-	while (!done)
-	{
-		cout << "Please enter the library member's email address: ";
-		getline(cin, email);
-
-		if (email.empty())
-		{
-			cout << "Email not entered, please re-enter." << endl;
-			continue;
-		}
-		done = true;
-	}
-}
-
+///<summary> Prompts user for string input and returns it. Will re-prompt if the user enters a null string. </summary>
+///<param name="prompt"> String to display to the user. </param>
+///<returns> The string the user entered. </returns>
 string getStringInput(string prompt)
 {
 	bool done = false;
@@ -191,37 +157,12 @@ string getStringInput(string prompt)
 	return input;
 }
 
-///<summary> Handles incorrect input after asking for a number from an iterable object.</summary>
+///<summary> Prompts user for integer input. Handles incorrect input for min, max, and other input. </summary>
 ///<param name="prompt"> String to display to the user about entering the appropriate number. </param>
-///<param name="arraySize"> Size of the array the user is selecting from. </param>
-///<returns> An integer in the form of whatever the user entered minus 1 (assumes array is using base 0). </returns>
-int userSelectMember(string prompt, int size)
-{
-	// TODO - clean this function up by just using getIntInput from now on. Delete this one and replace it...carefully
-	bool done = false;
-	int choice = 0;
-
-	while (!done)
-	{
-		cout << prompt;
-		cin >> choice;
-
-		if (cin.fail() || choice < 1 || choice > size)
-		{
-			done = false;
-			cin.clear(); // If something like a string is entered it corrupts the buffer and causes an infinite loop - so clear it
-			cin.ignore(INT_MAX, '\n');
-			cout << "Invalid selection, please enter again" << endl;
-		}
-		else
-		{
-			done = true;
-		}
-	}
-
-	return choice - 1;
-}
-
+///<param name="max"> Maximum integer value user should be allowed to enter. </param>
+///<param name="min"> Minimum integer value user should be allowed to enter. Default is 1.</param>
+///<param name="isArray"> Whether the output is meant for a 0-based array or not. Default is true.</param>
+///<returns> An integer the user entered (will be subtracted by one if isArray is true). </returns>
 int getIntInput(string prompt, int max, int min, bool isArray)
 {
 	bool done = false;
@@ -270,27 +211,31 @@ void editLibraryMember(vector<Person> &members)
 	}
 
 	displayLibraryMembers(members);
-	int choice = userSelectMember("Enter the number of the member to edit: ", members.size());
+	int choice = getIntInput("Enter the number of the member to edit: ", members.size());
 
 	//edit the attributes of a current member
-	editMemberAttributes(members, choice);
+	editMemberAttributes(members[choice]);
 	cout << "Library member edited" << endl;
 }
 
 ///<summary> Sets the library member's new name and email after prompting for them.</summary>
-///<param name="members"> Vector of library members. </param>
-///<param name="index"> Index in the vector of the library member to edit. </param>
+///<param name="member"> Person object for the member to be edited. </param>
 ///<returns> Nothing. </returns>
-void editMemberAttributes(vector<Person> &members, int index)
+void editMemberAttributes(Person &member)
 {
-	// TODO: You don't need the index parameter here, just go into editLibraryMember and pass members[choice] to this function and change the parameter
 	string name, email;
 	cin.ignore();
-	getNameAndEmail(name, email);
-	members[index].setName(name);
-	members[index].setEmail(email);
+	name = getStringInput("Please enter the library member's full name: ");
+	email = getStringInput("Please enter the library member's email address: ");
+	member.setName(name);
+	member.setEmail(email);
 }
 
+///<summary> Prompts the user for the kind of publication to edit then goes to the specific edit handler to edit a specific publication. </summary>
+///<param name="books"> Collection of Book objects. </param>
+///<param name="member"> Collection of Music objects. </param>
+///<param name="member"> Collection of Video objects. </param>
+///<returns> Nothing. </returns>
 void editPublicationMenu(vector<Book> &books, vector<Music> &music, vector<Video> &videos)
 {
 	system("cls");
@@ -311,12 +256,16 @@ void editPublicationMenu(vector<Book> &books, vector<Music> &music, vector<Video
 		editLibraryVideo(videos);
 		break;
 	default:
-		// Shouldn't ever get here since userSelectMember should handle invalid input
+		// Shouldn't ever get here since getIntInput should handle invalid input
 		break;
 	}
 }
 
 template <class T>
+///<summary> Generic handler for setting the common member variables of a Publication or Publication derived class. Prompts the user and then sets the variables. </summary>
+///<param name="publication"> Object to edit. </param>
+///<remarks> T should be a Publication or Publication derived class </remarks>
+///<returns> Nothing. </returns>
 void editPublicationAttributes(T &publication)
 {
 	string title = getStringInput("Please enter the publication's title: ");
@@ -325,6 +274,9 @@ void editPublicationAttributes(T &publication)
 	publication.setAuthor(author);
 }
 
+///<summary> Main handler for editing a Book object. </summary>
+///<param name="books"> Collection of Book objects. </param>
+///<returns> Nothing. </returns>
 void editLibraryBook(vector<Book> &books)
 {
 	system("cls");
@@ -342,6 +294,9 @@ void editLibraryBook(vector<Book> &books)
 	cout << "Library book edited" << endl;
 }
 
+///<summary> Prompts user for all relevant member variables and sets them into Book object. </summary>
+///<param name="book"> Book object to be edited. </param>
+///<returns> Nothing. </returns>
 void editBookAttributes(Book &book)
 {
 	editPublicationAttributes<Book>(book);
@@ -356,6 +311,9 @@ void editBookAttributes(Book &book)
 	book.setFormat(static_cast<Book::Format>(format));
 }
 
+///<summary> Main handler for editing a Music object. </summary>
+///<param name="music"> Collection of Music objects. </param>
+///<returns> Nothing. </returns>
 void editLibraryMusic(vector<Music> &music)
 {
 	system("cls");
@@ -366,17 +324,20 @@ void editLibraryMusic(vector<Music> &music)
 	}
 
 	displayLibraryMusicAll(music);
-	int choice = getIntInput("Enter the number of the book to edit: ", music.size());
+	int choice = getIntInput("Enter the number of the album to edit: ", music.size());
 
 	cin.ignore();
 	editMusicAttributes(music[choice]);
-	cout << "Library book edited" << endl;
+	cout << "Library album edited" << endl;
 }
 
+///<summary> Prompts user for all relevant member variables and sets them into Music object. </summary>
+///<param name="album"> Single Music object to be edited. </param>
+///<returns> Nothing. </returns>
 void editMusicAttributes(Music &album)
 {
 	editPublicationAttributes<Music>(album);
-	int duration = getIntInput("Please enter the duration of the album: ", INT_MAX, 1, false);
+	int duration = getIntInput("Please enter the duration of the album in seconds: ", INT_MAX, 1, false);
 	const string* formatStrs = album.getFormatStrings();
 	cout << "Please select a format" << endl;
 	cout << "1. " << *formatStrs << endl;
@@ -387,6 +348,9 @@ void editMusicAttributes(Music &album)
 	album.setFormat(static_cast<Music::Format>(format));
 }
 
+///<summary> Main handler for editing a Video object. </summary>
+///<param name="videos"> Collection of Video objects. </param>
+///<returns> Nothing. </returns>
 void editLibraryVideo(vector<Video> &videos)
 {
 	system("cls");
@@ -397,18 +361,21 @@ void editLibraryVideo(vector<Video> &videos)
 	}
 
 	displayLibraryVideos(videos);
-	int choice = getIntInput("Enter the number of the book to edit: ", videos.size());
+	int choice = getIntInput("Enter the number of the video to edit: ", videos.size());
 
 	cin.ignore();
 	editVideoAttributes(videos[choice]);
-	cout << "Library book edited" << endl;
+	cout << "Library video edited" << endl;
 
 }
 
+///<summary> Prompts user for all relevant member variables and sets them into Video object. </summary>
+///<param name="video"> Single Video object to be edited. </param>
+///<returns> Nothing. </returns>
 void editVideoAttributes(Video &video)
 {
 	editPublicationAttributes<Video>(video);
-	string producer = getStringInput("Enter the video's producer: ");
+	string producer = getStringInput("Enter the producer of the video: ");
 	const string* resStrs = video.getResolutionStrings();
 	cout << "Please select a format" << endl;
 	cout << "1. " << *resStrs << endl;
@@ -475,8 +442,8 @@ template <class T>
 ///<returns> Nothing. </returns>
 void displayLibraryPublication(T libraryItem)
 {
-	vector<Person*> borrowers = libraryItem.getBorrower();
-	vector<bool> checkedOutStatuses = libraryItem.getCheckedOutStatus();
+	vector<Person*> borrowers = libraryItem.getBorrowers();
+	vector<bool> checkedOutStatuses = libraryItem.getCheckedOutStatuses();
 	cout << "Title: " << libraryItem.getTitle() << endl;
 	cout << "Author: " << libraryItem.getAuthor() << endl;
 	cout << "Copies:" << endl;
@@ -510,6 +477,9 @@ void displayLibraryPublication(T libraryItem)
 
 }
 
+///<summary> Displays all library books to the prompt.</summary>
+///<param name="books"> Vector of library Book objects. </param>
+///<returns> Nothing. </returns>
 void displayLibraryBooks(vector<Book> const &books)
 {
 	int count = 1;
@@ -541,6 +511,9 @@ void displayLibraryBook(Book book)
 	
 }
 
+///<summary> Displays all library music to the prompt.</summary>
+///<param name="music"> Vector of library Music objects. </param>
+///<returns> Nothing. </returns>
 void displayLibraryMusicAll(vector<Music> const &music)
 {
 	int count = 1;
@@ -572,6 +545,9 @@ void displayLibraryMusic(Music music)
 	cout << endl;
 }
 
+///<summary> Displays all library videos to the prompt.</summary>
+///<param name="videos"> Vector of library Video objects. </param>
+///<returns> Nothing. </returns>
 void displayLibraryVideos(vector<Video> const &videos)
 {
 	int count = 1;
@@ -605,8 +581,10 @@ void displayLibraryVideo(Video video)
 #pragma endregion displayFunctions
 
 #pragma region checkInAndOut
-///<summary> Prompts a user for a Publication and copy of that Publication to check in to the library.</summary>
-///<param name="Publications"> Vector of library Publications. </param>
+///<summary> Prompts a user for the type of library item to check in. </summary>
+///<param name="books"> Vector of Book objects. </param>
+///<param name="music"> Vector of Music objects. </param>
+///<param name="videos"> Vector of Video objects. </param>
 ///<returns> Nothing. </returns>
 void checkInPublicationMenu(vector<Book> &books, vector<Music> &music, vector<Video> &videos)
 {
@@ -615,10 +593,10 @@ void checkInPublicationMenu(vector<Book> &books, vector<Music> &music, vector<Vi
 	cout << "1. Book" << endl;
 	cout << "2. Music" << endl;
 	cout << "3. Video" << endl;
-	int typeChoice = userSelectMember("Enter the number of the type of publication to check in: ", 3);
+	int typeChoice = getIntInput("Enter the number of the type of publication to check in: ", 3);
 	switch (typeChoice)
 	{
-		// The case numbers are 1 less than the menu above because of how userSelectMember is designed for array selection
+		// The case numbers are 1 less than the menu above because of how getIntInput is designed for array selection
 	case 0:
 		displayLibraryBooks(books);
 		checkInOnePublication<Book>(books);
@@ -632,16 +610,19 @@ void checkInPublicationMenu(vector<Book> &books, vector<Music> &music, vector<Vi
 		checkInOnePublication<Video>(videos);
 		break;
 	default:
-		// Shouldn't ever get here since userSelectMember should handle invalid input
+		// Shouldn't ever get here since getIntInput should handle invalid input
 		break;
 	}
 }
 
 template <class T>
+///<summary> Prompts a user for a library item and copy of that item to check in.</summary>
+///<param name="collection"> Vector of objects to use to find one to check in. </param>
+///<returns> Nothing. </returns>
 void checkInOnePublication(vector<T> &collection)
 {
-	int choice = userSelectMember("Enter the number of the Publication to check in: ", collection.size());
-	int copyIndex = userSelectMember("Enter the copy number to check in: ", collection[choice].getNumCopies());
+	int choice = getIntInput("Enter the number of the publication to check in: ", collection.size());
+	int copyIndex = getIntInput("Enter the copy number to check in: ", collection[choice].getNumCopies());
 
 	if (collection[choice].checkIn(copyIndex))
 	{
@@ -653,8 +634,10 @@ void checkInOnePublication(vector<T> &collection)
 	}
 }
 
-///<summary> Prompts a user for a Publication to check out of the library.</summary>
-///<param name="Publications"> Vector of library Publications. </param>
+///<summary> Prompts a user for the type of library item to check out. </summary>
+///<param name="books"> Vector of Book objects. </param>
+///<param name="music"> Vector of Music objects. </param>
+///<param name="videos"> Vector of Video objects. </param>
 ///<param name="members"> Vector of library members. </param>
 ///<returns> Nothing. </returns>
 void checkOutPublicationMenu(vector<Book> &books, vector<Music> &music, vector<Video> &videos, vector<Person> &members)
@@ -664,11 +647,10 @@ void checkOutPublicationMenu(vector<Book> &books, vector<Music> &music, vector<V
 	cout << "1. Book" << endl;
 	cout << "2. Music" << endl;
 	cout << "3. Video" << endl;
-	int typeChoice = userSelectMember("Enter the number of the type of publication to check out: ", 3);
+	int typeChoice = getIntInput("Enter the number of the type of publication to check out: ", 3);
 
 	switch (typeChoice)
 	{
-		// The case numbers are 1 less than the menu above because of how userSelectMember is designed for array selection
 	case 0:
 		displayLibraryBooks(books);
 		checkOutOnePublication<Book>(books, members);
@@ -682,19 +664,23 @@ void checkOutPublicationMenu(vector<Book> &books, vector<Music> &music, vector<V
 		checkOutOnePublication<Video>(videos, members);
 		break;
 	default:
-		// We should never get here since userSelectMember should handle invalid input
+		// We should never get here since getIntInput should handle invalid input
 		cout << "Invalid choice." << endl;
 		break;
 	}
 }
 
 template <class T>
+///<summary> Prompts a user for the library item to check out. </summary>
+///<param name="collection"> Vector of library related objects for check out. </param>
+///<param name="members"> Vector of library members. </param>
+///<returns> Nothing. </returns>
 void checkOutOnePublication(vector<T> &collection, vector<Person> &members)
 {
 	bool available = false;
 	int copyIndex = 0;
-	int publicationChoice = userSelectMember("Enter the number of the publication to check out: ", collection.size());
-	vector<bool> checkedOutStatuses = collection[publicationChoice].getCheckedOutStatus();
+	int publicationChoice = getIntInput("Enter the number of the publication to check out: ", collection.size());
+	vector<bool> checkedOutStatuses = collection[publicationChoice].getCheckedOutStatuses();
 	int numCopies = collection[publicationChoice].getNumCopies();
 
 	for (int i = 0; i < numCopies; i++)
@@ -714,7 +700,7 @@ void checkOutOnePublication(vector<T> &collection, vector<Person> &members)
 	}
 
 	displayLibraryMembers(members);
-	int memberChoice = userSelectMember("Enter the number of the member checking out the publication: ", members.size());
+	int memberChoice = getIntInput("Enter the number of the member checking out the publication: ", members.size());
 
 	available = collection[publicationChoice].checkOut(&members[memberChoice], copyIndex);
 	if (!available)
