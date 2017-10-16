@@ -13,6 +13,7 @@
 #include "Music.h"
 #include "Book.h"
 #include "Video.h"
+#include "Date.h"
 
 using namespace std;
 
@@ -45,6 +46,7 @@ void displayLibraryMusicAll(vector<Music> const &music);
 void displayLibraryMusic(Music music);
 void displayLibraryVideos(vector<Video> const &videos);
 void displayLibraryVideo(Video video);
+void displayOverduePublications(vector<Book> &books, vector<Music> &music, vector<Video> &videos);
 
 void checkInPublicationMenu(vector<Book> &books, vector<Music> &music, vector<Video> &videos);
 template <class T>
@@ -73,7 +75,7 @@ int main()
 
 	do
 	{
-		const int SELECT_MIN = 1, SELECT_MAX = 6;
+		const int SELECT_MIN = 1, SELECT_MAX = 7;
 		choice = 0;
 		cout << "Library App Main Menu" << endl;
 		cout << "1. Display all current library members" << endl;
@@ -82,6 +84,7 @@ int main()
 		cout << "4. Edit a publication" << endl;
 		cout << "5. Check out a publication" << endl;
 		cout << "6. Check in a publication" << endl;
+		cout << "7. Display all publications with an overdue copy" << endl;
 		cout << "What would you like to do? (q to quit) ";
 		cin >> choice;
 
@@ -104,6 +107,9 @@ int main()
 			break;
 		case 6:
 			checkInPublicationMenu(libraryBooks, libraryMusic, libraryVideos);
+			break;
+		case 7:
+			displayOverduePublications(libraryBooks, libraryMusic, libraryVideos);
 			break;
 		default:
 			if ((choice > SELECT_MAX || choice < SELECT_MIN) && !cin.fail())
@@ -444,16 +450,18 @@ void displayLibraryPublication(T libraryItem)
 {
 	vector<Person*> borrowers = libraryItem.getBorrowers();
 	vector<bool> checkedOutStatuses = libraryItem.getCheckedOutStatuses();
+	vector<Date> checkOutDates = libraryItem.getCheckOutDates();
 	cout << "Title: " << libraryItem.getTitle() << endl;
 	cout << "Author: " << libraryItem.getAuthor() << endl;
 	cout << "Copies:" << endl;
-	cout << "   " << setw(14) << left << "Checked Out?" << setw(8) << "Borrower" << endl;
-	cout << "   " << setw(14) << left << "============" << setw(8) << "========" << endl;
+	cout << "   " << setw(14) << left << "Checked Out?" << setw(16) << "Check Out Date" << setw(10) << left << "Overdue?" << setw(10) << "Borrower" << endl;
+	cout << "   " << setw(14) << left << "============" << setw(16) << "==============" << setw(10) << left << "========" << setw(10) << "========" << endl;
 	for (int i = 0; i < libraryItem.getNumCopies(); i++)
 	{
 		string checkedOut;
 		string borrowerName;
-		int checkedWidth = 0;
+		string dateString;
+		string overdue;
 
 		if (checkedOutStatuses[i])
 		{
@@ -470,9 +478,27 @@ void displayLibraryPublication(T libraryItem)
 		}
 		else
 		{
-			borrowerName = "N/A";
+			borrowerName = "-";
 		}
-		cout << i + 1 << ". " << setw(14) << left << checkedOut << setw(borrowerName.length()) << left << borrowerName << endl;
+
+		if (!checkOutDates[i].isNullDate())
+		{
+			dateString = checkOutDates[i].toString();
+			if (libraryItem.isCopyOverdue(i))
+			{
+				overdue = "Yes";
+			}
+			else
+			{
+				overdue = "No";
+			}
+		}
+		else
+		{
+			dateString = "-";
+			overdue = "-";
+		}
+		cout << i + 1 << ". " << setw(14) << left << checkedOut << setw(16) << dateString << setw(10) << overdue << setw(borrowerName.length()) << left << borrowerName << endl;
 	}
 
 }
@@ -577,6 +603,75 @@ void displayLibraryVideo(Video video)
 	cout << "Producer: " << video.getProducer() << endl;
 	cout << "Resolution: " << *(resolutionArr + static_cast<int>(video.getResolution())) << endl;
 	cout << endl;
+}
+
+///<summary> Displays all publications that have at least one copy that is overdue.</summary>
+///<param name="books"> Vector of library Book objects. </param>
+///<param name="music"> Vector of library Music objects. </param>
+///<param name="videos"> Vector of library Video objects. </param>
+///<returns> Nothing. </returns>
+void displayOverduePublications(vector<Book> &books, vector<Music> &music, vector<Video> &videos)
+{
+	system("cls");
+
+	if (books.size() < 1 && music.size() < 1 && videos.size() < 1)
+	{
+		cout << "No library Publications listed." << endl;
+		return;
+	}
+	cout << "Overdue Publications" << endl;
+	int count = 1;
+	bool overdue = false;
+
+	for (int i = 0; i < books.size(); i++)
+	{
+		for (int j = 0; j < books[i].getNumCopies(); j++)
+		{
+			if (books[i].isCopyOverdue(j))
+			{
+				overdue = true;
+				cout << "#" << count << endl;
+				displayLibraryBook(books[i]);
+				count++;
+				break;
+			}
+		}
+	}
+
+	for (int i = 0; i < music.size(); i++)
+	{
+		for (int j = 0; j < music[i].getNumCopies(); j++)
+		{
+			if (music[i].isCopyOverdue(j))
+			{
+				overdue = true;
+				cout << "#" << count << endl;
+				displayLibraryMusic(music[i]);
+				count++;
+				break;
+			}
+		}
+	}
+
+	for (int i = 0; i < videos.size(); i++)
+	{
+		for (int j = 0; j < videos[i].getNumCopies(); j++)
+		{
+			if (videos[i].isCopyOverdue(j))
+			{
+				overdue = true;
+				cout << "#" << count << endl;
+				displayLibraryVideo(videos[i]);
+				count++;
+				break;
+			}
+		}
+	}
+
+	if (!overdue)
+	{
+		cout << "No overdue publications currently." << endl;
+	}
 }
 #pragma endregion displayFunctions
 
@@ -700,9 +795,24 @@ void checkOutOnePublication(vector<T> &collection, vector<Person> &members)
 	}
 
 	displayLibraryMembers(members);
+	int leapDay;
 	int memberChoice = getIntInput("Enter the number of the member checking out the publication: ", members.size());
+	int year = getIntInput("Enter the year of publication check out: ", INT_MAX, 0, false);
+	int month = getIntInput("Enter the numeric month of publication check out (1 - 12): ", 12, 1, false);
 
-	available = collection[publicationChoice].checkOut(&members[memberChoice], copyIndex);
+	if (Date::isLeapYear(year))
+	{
+		leapDay = 1;
+	}
+	else
+	{
+		leapDay = 0;
+	}
+
+	const int* monthDays = Date::getMonthDays();
+	int day = getIntInput("Enter the day of of publication check out: ", *(monthDays + month - 1) + leapDay, 1, false);
+
+	available = collection[publicationChoice].checkOut(&members[memberChoice], copyIndex, Date(month, day, year));
 	if (!available)
 	{
 		cout << "Publication not currently available for check out. Please try again later." << endl;

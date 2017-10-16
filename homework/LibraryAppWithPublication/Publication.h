@@ -2,7 +2,9 @@
 #define PUBLICATION_H
 #include <string>
 #include <vector>
+#include <ctime>
 #include "Person.h"
+#include "Date.h"
 
 ///<summary> Publication class used to create items in a library. Parent class of Book, Video, and Music. </summary>
 class Publication
@@ -15,14 +17,17 @@ public:
 	std::string getAuthor();
 	std::vector<bool> getCheckedOutStatuses();
 	std::vector<Person*> getBorrowers();
+	std::vector<Date> getCheckOutDates();
 	int getNumCopies();
 	void setTitle(std::string title);
 	void setAuthor(std::string author);
 	bool setCheckedOutStatus(bool checkedOut, int copyIndex);
 	bool setBorrower(Person* borrower, int copyIndex);
+	bool setCheckOutDate(Date checkOutDate, int copyIndex);
 	void setNumCopies();
-	bool checkOut(Person* borrower, int copyIndex);
+	bool checkOut(Person* borrower, int copyIndex, Date checkOutDate);
 	bool checkIn(int copyIndex);
+	bool isCopyOverdue(int copyIndex);
 	Publication* testData();
 
 private:
@@ -30,6 +35,7 @@ private:
 	std::string m_author;
 	std::vector<bool> m_checkedOut;
 	std::vector<Person*> m_pBorrower;
+	std::vector<Date> m_checkOutDates;
 	int m_numCopies;
 
 };
@@ -53,8 +59,10 @@ Publication::Publication(std::string title, std::string author, int copies)
 
 	for (int i = 0; i < copies; i++)
 	{
+		Date temp = Date();
 		m_checkedOut.push_back(false);
 		m_pBorrower.push_back(nullptr);
+		m_checkOutDates.push_back(temp);
 	}
 }
 
@@ -90,6 +98,13 @@ inline std::vector<bool> Publication::getCheckedOutStatuses()
 inline std::vector<Person*> Publication::getBorrowers()
 {
 	return m_pBorrower;
+}
+
+///<summary> Getter method for the check out dates of each publication copy. </summary>
+///<returns> A vector of the check out dates. </returns>
+inline std::vector<Date> Publication::getCheckOutDates()
+{
+	return m_checkOutDates;
 }
 
 ///<summary> Getter method for the number of copies of the publication. </summary>
@@ -149,6 +164,23 @@ inline bool Publication::setBorrower(Person* borrower, int copyIndex)
 	}
 }
 
+///<summary> Setter method for the check out date of the publication copy. </summary>
+///<param name="checkOutDate"> The check out date of a particular publication copy. </param>
+///<param name="copyIndex"> The index in the copy vector to denote which copy is being set. </param>
+///<returns> True if check out date is set, otherwise false. </returns>
+bool Publication::setCheckOutDate(Date checkOutDate, int copyIndex)
+{
+	if (copyIndex < m_checkOutDates.size() && copyIndex >= 0)
+	{
+		m_checkOutDates[copyIndex] = checkOutDate;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 ///<summary> Setter method for the number of copies of the publication. Note that the only real way to set copies is in the constructor of the Publication class. 
 ///This method sets the number of copies to the size of the checked out vector so that copies and vector size stays in sync.</summary>
 ///<returns> Nothing. </returns>
@@ -160,8 +192,9 @@ inline void Publication::setNumCopies()
 ///<summary> Method used to check out a single publication copy. </summary>
 ///<param name="borrower"> The pointer to a Person class representing the borrower of the publication. </param>
 ///<param name="copyIndex"> The index in the copy vector to denote which copy is being checked out. </param>
+///<param name="checkOutDate"> Date class representing the check out date. </param>
 ///<returns> True if publication copy is available for check out, otherwise false. </returns>
-inline bool Publication::checkOut(Person* borrower, int copyIndex)
+inline bool Publication::checkOut(Person* borrower, int copyIndex, Date checkOutDate)
 {
 	if (m_checkedOut[copyIndex])
 	{
@@ -171,6 +204,7 @@ inline bool Publication::checkOut(Person* borrower, int copyIndex)
 	{
 		m_checkedOut[copyIndex] = true;
 		m_pBorrower[copyIndex] = borrower;
+		m_checkOutDates[copyIndex] = checkOutDate;
 		return true;
 	}
 }
@@ -184,6 +218,40 @@ inline bool Publication::checkIn(int copyIndex)
 	{
 		m_checkedOut[copyIndex] = false;
 		m_pBorrower[copyIndex] = nullptr;
+		m_checkOutDates[copyIndex] = Date();
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+///<summary> 
+///Method used to check whether a publication is overdue at the library or not. Assumes validation of dates has already occurred so that check out dates are 
+///not in the future. Publications checked out for longer than 21 days are considered overdue. If the copyIndex is invalid, the method returns false. 
+///</summary>
+///<param name="copyIndex"> The index in the copy vector check if it is overdue or not. If the copyIndex is invalid, the method returns false. </param>
+///<returns> True if publication copy is overdue, otherwise false. </returns>
+inline bool Publication::isCopyOverdue(int copyIndex)
+{
+	int diff = 0;
+
+	if (copyIndex < m_checkOutDates.size() && copyIndex >= 0)
+	{
+		if (m_checkOutDates[copyIndex].isNullDate())
+		{
+			diff = 0;
+		}
+		else
+		{
+			Date today = m_checkOutDates[copyIndex].getCurrentDate();
+			diff = today - m_checkOutDates[copyIndex];
+		}
+	}
+	
+	if (diff > 21)
+	{
 		return true;
 	}
 	else
