@@ -14,6 +14,7 @@ public:
 	};
 	Card();
 	Card(int num, Card::Suit suit);
+	Card(int num, Card::Suit suit, std::string desc);
 	~Card();
 	Card::Suit getSuit();
 	int getNumber();
@@ -39,6 +40,14 @@ Card::Card(int num, Card::Suit suit)
 	m_number = num;
 	m_suit = suit;
 	m_description = Card::m_numStrings[num] + " of " + Card::m_suitStrings[static_cast<int>(suit)];
+}
+
+Card::Card(int num, Card::Suit suit, std::string desc)
+{
+	// Make this constructor just for when we read all the data back and repopulate the collection
+	m_number = num;
+	m_suit = suit;
+	m_description = desc;
 }
 
 Card::~Card()
