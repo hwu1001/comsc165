@@ -15,9 +15,11 @@ public:
 	std::vector<Card> getCardsFromWonTricks();
 	void setRoundHand(std::vector<Card> &hand);
 	void addToPoints(int val);
-	void addToCardsFromWonTricks(Card card);
+	void addToCardsFromWonTricks(Card &card);
 	void clearCardsFromWonTricks();
+	void clearRoundHand();
 	bool hasShotTheMoon();
+	bool hasOneCardOfSuitType(Card::Suit suit);
 
 private:
 	std::vector<Card> m_roundHand;
@@ -53,7 +55,7 @@ inline void Player::addToPoints(int val)
 {
 	m_points = m_points + val;
 }
-inline void Player::addToCardsFromWonTricks(Card card)
+inline void Player::addToCardsFromWonTricks(Card &card)
 {
 	m_cardsFromWonTricks.push_back(card);
 }
@@ -61,11 +63,29 @@ inline void Player::clearCardsFromWonTricks()
 {
 	m_cardsFromWonTricks.clear();
 }
+inline void Player::clearRoundHand()
+{
+	m_roundHand.clear();
+}
 inline bool Player::hasShotTheMoon()
 {
 	Deck::sort(m_cardsFromWonTricks);
 	// m_shootTheMoonCards is already sorted
-	return std::includes(m_cardsFromWonTricks.begin(), m_cardsFromWonTricks.end(), m_shotTheMoonCards.begin(), m_shotTheMoonCards.end()) ;
+	return std::includes(m_cardsFromWonTricks.begin(), m_cardsFromWonTricks.end(), m_shotTheMoonCards.begin(), m_shotTheMoonCards.end());
+}
+
+bool Player::hasOneCardOfSuitType(Card::Suit suit)
+{
+	bool result = false;
+	for (Card &card : m_roundHand)
+	{
+		if (card.getSuit() == suit)
+		{
+			result = true;
+			break;
+		}
+	}
+	return result;
 }
 
 std::vector<Card> m_shotTheMoonCards =

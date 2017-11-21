@@ -1,7 +1,7 @@
 // Henry Wu
 // COMSC 165
 // Section 3015
-// Homework 5
+// Homework 6
 
 #include <iostream>
 #include "Card.h"
@@ -9,6 +9,8 @@
 
 using namespace std;
 
+// When there are 3 players the 2 of diamonds is removed before you start play, each player then gets 17 cards.
+// When there are 5 players the 2 of clubs and 2 of diamonds is removed. All players get 10 cards
 int main()
 {
 	int choice;
