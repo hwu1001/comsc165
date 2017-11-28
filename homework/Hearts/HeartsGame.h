@@ -38,9 +38,9 @@ private:
 	void initializePlayerHands();
 	void passCards();
 	int tallyPoints(std::vector<Card> &cards);
-	bool isValidCardPlay(Card &card, int playerIndex, bool canLeadQofS, bool isFirstRoundOfGame, bool isLeadingCard);
-	void initializePlayerOrder(std::vector<int> &playerOrder, bool isFirstRoundOfGame, int largestCardPosition);
-	void playTrick(std::vector<int> playerOrder, std::vector<Card> &trickCards, bool isFirstRoundOfGame);
+	bool isValidCardPlay(Card &card, int playerIndex, bool canLeadQofS, bool isFirstTrickOfGame, bool isLeadingCard);
+	void initializePlayerOrder(std::vector<int> &playerOrder, bool isFirstTrickOfGame, int largestCardPosition);
+	void playTrick(std::vector<int> playerOrder, std::vector<Card> &trickCards, bool isFirstTrickOfGame);
 	void setLeadingCardSuit(Card::Suit suit);
 	void setCanPlayHearts(int playerIndex, bool isLeadingCard);
 	void handleShootTheMoon();
@@ -125,7 +125,7 @@ void HeartsGame::start()
 ///<returns> Nothing. </returns>
 void HeartsGame::playRound()
 {
-	bool isFirstRoundOfGame = true;
+	bool isFirstTrickOfGame = true;
 	std::vector<int> playerOrder;
 	std::vector<Card> trickCards;
 	int nextLeadingPlayerPosition = -1;
@@ -138,8 +138,8 @@ void HeartsGame::playRound()
 	// Keep playing until players run out of cards. Need to initialize player order first, then play the trick
 	while (m_players.at(0).getRoundHand().size() > 0)
 	{
-		HeartsGame::initializePlayerOrder(playerOrder, isFirstRoundOfGame, nextLeadingPlayerPosition);
-		if (isFirstRoundOfGame)
+		HeartsGame::initializePlayerOrder(playerOrder, isFirstTrickOfGame, nextLeadingPlayerPosition);
+		if (isFirstTrickOfGame)
 		{
 			titleText = "Playing Round - Must begin with: " + m_startingCard.getDescription();
 		}
@@ -148,15 +148,15 @@ void HeartsGame::playRound()
 			titleText = "Playing Round";
 		}
 		HeartsGame::display(titleText);
-		HeartsGame::playTrick(playerOrder, trickCards, isFirstRoundOfGame);
+		HeartsGame::playTrick(playerOrder, trickCards, isFirstTrickOfGame);
 
 		// Determine who won the trick so they can lead next trick and determine if points need to be allocated
 		int largestCardPos = HeartsGame::findPosOfWinningCardInTrick(trickCards);
 		nextLeadingPlayerPosition = playerOrder.at(largestCardPos);
 		m_players.at(nextLeadingPlayerPosition).addToAllPoints(HeartsGame::tallyPoints(trickCards));
-		if (isFirstRoundOfGame)
+		if (isFirstTrickOfGame)
 		{
-			isFirstRoundOfGame = false;
+			isFirstTrickOfGame = false;
 		}
 		playerOrder.clear();
 		trickCards.clear();
@@ -365,10 +365,10 @@ int HeartsGame::tallyPoints(std::vector<Card> &cards)
 ///<param name="card"> The card played. </param>
 ///<param name="playerIndex"> Index of the player in m_players who is playing a card. </param>
 ///<param name="canLeadQofS"> Whether the player can lead with the Queen of Spades or not. </param>
-///<param name="isFirstRoundOfGame"> Whether this is the first trick of the game or not. </param>
+///<param name="isFirstTrickOfGame"> Whether this is the first trick of the game or not. </param>
 ///<param name="isLeadingCard"> Whether the card being played is the leading card of the trick or not. </param>
 ///<returns> True if the card is valid to play during the trick, otherwise false. </returns>
-bool HeartsGame::isValidCardPlay(Card &card, int playerIndex, bool canLeadQofS, bool isFirstRoundOfGame, bool isLeadingCard)
+bool HeartsGame::isValidCardPlay(Card &card, int playerIndex, bool canLeadQofS, bool isFirstTrickOfGame, bool isLeadingCard)
 {
 	bool result;
 	if (card.getSuit() == Card::Suit::HEARTS)
@@ -382,7 +382,7 @@ bool HeartsGame::isValidCardPlay(Card &card, int playerIndex, bool canLeadQofS, 
 		{
 			throw InvalidCardPlayed(InvalidCardPlayed::ExceptionType::CARD_IN_HAND);
 		}
-		else if (isFirstRoundOfGame && isLeadingCard && card != m_startingCard)
+		else if (isFirstTrickOfGame && isLeadingCard && card != m_startingCard)
 		{
 			throw InvalidCardPlayed(InvalidCardPlayed::ExceptionType::BAD_LEADING_CARD);
 		}
@@ -436,13 +436,13 @@ int HeartsGame::findPosOfWinningCardInTrick(std::vector<Card> &trickCards)
 ///NOTE: Player's trick points are cleared in this function for each trick after the first one is played so the next player order can be determined.
 ///</summary>
 ///<param name="playerOrder"> Vector to be filled with the order in which players go for this trick. </param>
-///<param name="isFirstRoundOfGame"> Whether or not it is the first trick of the game. </param>
+///<param name="isFirstTrickOfGame"> Whether or not it is the first trick of the game. </param>
 ///<param name="leadingPlayerPosition"> The position of the player that won the previous trick. Only needed after the first round of the game.</param>
 ///<returns> Return is done in the playerOrder variable. </returns>
-void HeartsGame::initializePlayerOrder(std::vector<int> &playerOrder, bool isFirstRoundOfGame, int leadingPlayerPosition)
+void HeartsGame::initializePlayerOrder(std::vector<int> &playerOrder, bool isFirstTrickOfGame, int leadingPlayerPosition)
 {
 	int leadPosition;
-	if (isFirstRoundOfGame)
+	if (isFirstTrickOfGame)
 	{
 		leadPosition = HeartsGame::findStartingRoundPlayerPos();
 	}
@@ -461,7 +461,7 @@ void HeartsGame::initializePlayerOrder(std::vector<int> &playerOrder, bool isFir
 		playerOrder.push_back(i);
 	}
 	// Need to clear trick points after determining the order so they can start fresh for the new trick
-	if (!isFirstRoundOfGame)
+	if (!isFirstTrickOfGame)
 	{
 		for (size_t i = 0; i < m_players.size(); i++)
 		{
@@ -476,9 +476,9 @@ void HeartsGame::initializePlayerOrder(std::vector<int> &playerOrder, bool isFir
 ///</summary>
 ///<param name="playerOrder"> Vector to be filled with the order in which players go for this trick. </param>
 ///<param name="trickCards"> Output to let the round handler know which cards were played this trick. </param>
-///<param name="isFirstRoundOfGame"> Whether or not it is the first trick of the game. </param>
+///<param name="isFirstTrickOfGame"> Whether or not it is the first trick of the game. </param>
 ///<returns> Nothing. </returns>
-void HeartsGame::playTrick(std::vector<int> playerOrder, std::vector<Card> &trickCards, bool isFirstRoundOfGame)
+void HeartsGame::playTrick(std::vector<int> playerOrder, std::vector<Card> &trickCards, bool isFirstTrickOfGame)
 {
 	bool canLeadQofS = true;
 	for (int i = 0; i < m_players.size(); i++)
@@ -486,7 +486,7 @@ void HeartsGame::playTrick(std::vector<int> playerOrder, std::vector<Card> &tric
 		std::string cardStr;
 		bool validCardPlay = false;
 		Card playedCard;
-		if (isFirstRoundOfGame && i == 0 && !Deck::hasOneCardOfSuitType(m_players.at(playerOrder.at(i)).getRoundHand(), Card::Suit::CLUBS))
+		if (isFirstTrickOfGame && i == 0 && !Deck::hasOneCardOfSuitType(m_players.at(playerOrder.at(i)).getRoundHand(), Card::Suit::CLUBS))
 		{
 			canLeadQofS = false;
 		}
@@ -503,7 +503,7 @@ void HeartsGame::playTrick(std::vector<int> playerOrder, std::vector<Card> &tric
 				}
 				playedCard = Deck::convertCardStrToCard(cardStr);
  
-				if (!HeartsGame::isValidCardPlay(playedCard, playerOrder.at(i), canLeadQofS, isFirstRoundOfGame, i == 0))
+				if (!HeartsGame::isValidCardPlay(playedCard, playerOrder.at(i), canLeadQofS, isFirstTrickOfGame, i == 0))
 				{
 					validCardPlay = false;
 				}
