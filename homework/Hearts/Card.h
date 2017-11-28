@@ -22,7 +22,10 @@ public:
 	Card::Suit getSuit();
 	int getNumber();
 	std::string getDescription();
+	void setNumAndSuit(int num, Card::Suit suit);
 	bool operator<(Card &rightCard);
+	bool operator==(const Card &rightCard);
+	bool operator!=(Card &rightCard);
 
 private:
 	Card::Suit m_suit;
@@ -50,7 +53,7 @@ Card::Card(int num, Card::Suit suit)
 {
 	m_number = num;
 	m_suit = suit;
-	m_description = Card::m_suitStrings[static_cast<int>(suit)] + " " + Card::m_numStrings[num];
+	m_description = Card::m_numStrings[num] + " " + Card::m_suitStrings[static_cast<int>(suit)];
 }
 
 ///<summary>
@@ -95,6 +98,19 @@ inline std::string Card::getDescription()
 	return m_description;
 }
 
+///<summary>
+///Setter for Card object.
+///</summary>
+///<param name="num"> Value on the card. 9 - Jack, 10 - Queen, 11 - King, 12 - Ace. All numerical values are represented by value minus 2. </param>
+///<param name="suit"> Suit of the card. </param>
+///<returns> Nothing. </returns>
+void Card::setNumAndSuit(int num, Card::Suit suit)
+{
+	m_number = num;
+	m_suit = suit;
+	m_description = Card::m_numStrings[num] + " " + Card::m_suitStrings[static_cast<int>(suit)];
+}
+
 ///<summary> 
 ///Determines if a card to the left of the '<' symbol is of lower value than the card to the right.
 ///Suit priority from lowest to highest: Clubs, Diamonds, Hearts, Spades
@@ -131,6 +147,29 @@ bool Card::operator<(Card & rightCard)
 	return result;
 }
 
+///<summary> 
+///Determines if a card to the left of the '==' symbol is equal to the card to the right.
+///</summary>
+///<param name="rightCard"> The card to the right of the '==' symbol. </param>
+///<returns> True if both the left and right cards have the same number and suit, otherwise false. </returns>	
+bool Card::operator==(const Card & rightCard)
+{
+	return (this->m_number == rightCard.m_number && this->m_suit == rightCard.m_suit);
+}
+
+///<summary> 
+///Determines if a card to the left of the '!=' symbol is not equal to the card to the right.
+///</summary>
+///<param name="rightCard"> The card to the right of the '!=' symbol. </param>
+///<returns> True if either the number or suit is different for the left and right card, otherwise false. </returns>
+bool Card::operator!=(Card &rightCard)
+{
+	if (m_number != rightCard.getNumber() || m_suit != rightCard.getSuit())
+	{
+		return true;
+	}
+	return false;
+}
 // This suit array needs to stay in the same order as the Suit Public Enum
 std::string Card::m_suitStrings[] = { "Clubs", "Diamonds", "Hearts", "Spades" };
 std::string Card::m_numStrings[] = { "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King", "Ace" };
