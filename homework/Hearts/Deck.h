@@ -23,7 +23,6 @@ public:
 
 	// Static Functions
 	static int findPositionOfCard(std::vector<Card> &cards, Card &card);
-	static int findPositionOfCard(std::vector<Card> &cards, std::string cardStr);
 	static bool isCardStringValid(std::string cardStr);
 	static bool isCardInCollection(std::vector<Card> &cards, Card &card);
 	static bool isCardInCollection(std::vector<Card> &cards, std::string cardStr);

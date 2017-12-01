@@ -3,7 +3,6 @@
 #include <vector>
 #include "Card.h"
 #include "Deck.h"
-#include "HeartsHelper.h"
 
 ///<summary> 
 ///Player class used to represent a player in a game of Hearts.
